@@ -3,14 +3,11 @@ package com.mak.batch.file.reader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-/**
- * @author mayur.kalekar
- *
- */
-public class CreateCustomeObjectHelper {
-
+@Deprecated
+public class CreateCustomObjectHelperDeprecated {
 	/**
 	 * @param list
 	 * @param aClass
@@ -22,7 +19,7 @@ public class CreateCustomeObjectHelper {
 	 * @throws InvocationTargetException
 	 */
 	@SuppressWarnings({ "unchecked" })
-	public static <T extends Object> Object makeCustomObject(List<?> list, Class<?> aClass, Integer startIndex)
+	private <T extends Object> Object makeCustomObject(List<?> list, Class<?> aClass, Integer startIndex)
 			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		if (BatchFileReaderHelper.isAnnotationPresentOnClass(aClass, ObjectScanning.class)) {
 			Object obj = aClass.newInstance();
@@ -72,11 +69,56 @@ public class CreateCustomeObjectHelper {
 		return null;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked", "unused" })
+	private <T extends Object> Object makeCustomObject(HashMap mapOfObj, Class<?> aClass, Integer startIndex)
+			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		if (BatchFileReaderHelper.isAnnotationPresentOnClass(aClass, ObjectScanning.class)) {
+			Object obj = aClass.newInstance();
+			Method[] methods = aClass.getDeclaredMethods();
+			for (Method method : methods) {
+				if (method.isAnnotationPresent(ObjectMapping.class)) {
+					ObjectMapping annotation = method.getAnnotation(ObjectMapping.class);
+					int position = annotation.position();
+					if (position > -1) {
+						if (startIndex != null)
+							position += startIndex;
+						boolean isCustomObject = annotation.isCustomObject();
+						boolean isList = annotation.isList();
+						method.setAccessible(true);
+						if (isList) {
+							int endLocation = annotation.endLocation();
+							if (endLocation == -1) {
+								List<T> listObj = new ArrayList<T>();
+								endLocation = ((HashMap) mapOfObj.get(position)).size();
+								for (int i = 0; i < endLocation; i++) {
+									Class<?> customClass = annotation.className();
+									listObj.add((T) makeCustomObject(
+											((List<?>) ((HashMap) mapOfObj.get(position)).get(i)), customClass, null));
+								}
+								method.invoke(obj, listObj);
+							}
+						}
+						else if (isCustomObject) {
+							Class<?> customClass = annotation.className();
+							method.invoke(obj, makeCustomObject((List<?>) mapOfObj.get(position), customClass, null));
+						}
+						else {
+							method.invoke(obj, mapOfObj.get(position));
+						}
+					}
+				}
+			}
+			return obj;
+		}
+		return null;
+	}
+
 	private static int internalObjectCountMappedWithLocationAnnotation(Class<?> aclass) {
 		int count = 1;
 		Method[] methods = aclass.getDeclaredMethods();
 		for (Method method : methods) {
-			if (method.isAnnotationPresent(ObjectMapping.class) && method.getAnnotation(ObjectMapping.class).position() > -1) {
+			if (method.isAnnotationPresent(ObjectMapping.class)
+					&& method.getAnnotation(ObjectMapping.class).position() > -1) {
 				count++;
 			}
 		}

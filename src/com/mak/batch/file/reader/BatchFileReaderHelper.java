@@ -2,6 +2,7 @@ package com.mak.batch.file.reader;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -9,7 +10,7 @@ import java.util.regex.Pattern;
  * @author mayur.kalekar
  *
  */
-public class BatchFileReaderHelper {
+public class BatchFileReaderHelper implements IAutoDetectionConstant {
 
 	/**
 	 * @param str
@@ -50,6 +51,36 @@ public class BatchFileReaderHelper {
 		return str1;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private static HashMap splitStringByStandardFormat(String str) {
+		HashMap mapOfObject = new HashMap();
+		int position = 0;
+		for (int i = 0; i < str.length(); i++) {
+			String currStr = String.valueOf(str.charAt(i));
+			if (objectTypePresent(currStr) != -1) {
+				String returnStr = AutoDetectionHelper.someFuncToReturnStringBetweenBrackets(str.substring(i), currStr);
+				if (objectTypePresent(currStr) == normalObject) {
+					mapOfObject.put(position, splitString(returnStr, separator));
+				}
+				else if (objectTypePresent(currStr) == listObject) {
+					mapOfObject.put(position, splitStringByStandardFormat(returnStr));
+				}
+				position++;
+				i = i + 1 + returnStr.length() + 1;
+			}
+		}
+
+		return mapOfObject;
+	}
+
+	private static int objectTypePresent(String strType) {
+		if (strType.equals(openAngleBracket))
+			return listObject;
+		if (strType.equals(openCurlyBracket))
+			return normalObject;
+		return -1;
+	}
+
 	/**
 	 * @param classObj
 	 * @param annotationType
@@ -74,14 +105,17 @@ public class BatchFileReaderHelper {
 	 * @throws IllegalArgumentException
 	 * @throws InvocationTargetException
 	 */
-	public static <T> Object createObjectFromString(Class<T> classObj, String objSpec, String separator)
-			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public static <T> Object createObjectFromString(Class<T> classObj, String objSpec, String separator,
+			boolean autoModeEnabled) throws InstantiationException, IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException {
 		if (isAnnotationPresentOnClass(classObj, ObjectScanning.class)) {
 
-			List<String> strList = new ArrayList<String>();
-			strList = splitString(objSpec, separator);
-
-			return CreateCustomeObjectHelper.makeCustomObject(strList, classObj, null);
+			if (autoModeEnabled) {
+				return CreateCustomObjectHelper.makeCustomObject(splitStringByStandardFormat(objSpec), classObj, null);
+			}
+			else {
+				return CreateCustomObjectHelper.makeCustomObject(splitString(objSpec, separator), classObj, null);
+			}
 		}
 		return null;
 	}
