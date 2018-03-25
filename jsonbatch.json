@@ -1,0 +1,11 @@
+{
+"routes" : [
+	{"id":"1001","startRoute":{"id":"1011","startTime":"1:25pm","startLocation":"Panvel"},"endRoute":{"id":"1012","startTime":"2:25pm","startLocation":"Karjat"},
+	"internalRoute":[
+		{"id":"1003","startTime":"1:35pm","startLocation":"Panvel"},
+		{"id":"1004","startTime":"1:55pm","startLocation":"Lodhivali"}
+		]	
+	},
+	{"id":"1002","startRoute":{"startTime":"2:25pm","startLocation":"Karjat"},"endRoute":{"startTime":"2:25pm","startLocation":"Panvel"}}
+	]
+}

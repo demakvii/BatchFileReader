@@ -20,4 +20,10 @@ public interface IAutoDetectionConstant {
 
 	public static final int customObject = 2;
 
+	public static final String openSquareBracket = "[";
+
+	public static final String closeSquareBracket = "]";
+
+	public static final String doubleQuote = "\"";
+
 }

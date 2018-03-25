@@ -18,6 +18,8 @@ public class AutoDetectionHelper implements IAutoDetectionConstant {
 		separatorMap = new HashMap<String, String>();
 		separatorMap.put(openCurlyBracket, closeCurlyBracket);
 		separatorMap.put(openAngleBracket, closeAngleBracket);
+		separatorMap.put(openSquareBracket, closeSquareBracket);
+		separatorMap.put(doubleQuote, doubleQuote);
 	}
 
 	public static String someFuncToReturnStringBetweenBrackets(String objInfo, String openBracket) {
@@ -26,9 +28,17 @@ public class AutoDetectionHelper implements IAutoDetectionConstant {
 		int countOpenBracket = 0;
 		int countClosedBracket = 0;
 		String closedBracket = separatorMap.get(openBracket);
+		objInfo = objInfo.trim();
 		boolean firstOpenBracketFound = false;
 		for (int i = 0; i < objInfo.length(); i++) {
 			String currChar = String.valueOf(objInfo.charAt(i));
+			if (firstOpenBracketFound && openBracket.equals(closedBracket) && currChar.equals(openBracket)) {
+				countClosedBracket++;
+				if (countClosedBracket == countOpenBracket) {
+					endLocationToSplit = i;
+					break;
+				}
+			}
 			if (currChar.equals(openBracket)) {
 				if (!firstOpenBracketFound) {
 					startLocationToSplit = i;
@@ -44,7 +54,22 @@ public class AutoDetectionHelper implements IAutoDetectionConstant {
 				}
 			}
 		}
-		return objInfo.substring(startLocationToSplit + 1, endLocationToSplit);
+		if (countOpenBracket == countClosedBracket) {
+			return objInfo.substring(startLocationToSplit + 1, endLocationToSplit);
+		}
+		return "";
+	}
+
+	public static String detectFirstCharInString(String str, String[] brackets) {
+		int position = str.length();
+		String returnBracket = "";
+		for (String bracket : brackets) {
+			if (str.indexOf(bracket) >= 0 && str.indexOf(bracket) <= position) {
+				position = str.indexOf(bracket);
+				returnBracket = bracket;
+			}
+		}
+		return returnBracket;
 	}
 
 	public static void main(String args[]) {

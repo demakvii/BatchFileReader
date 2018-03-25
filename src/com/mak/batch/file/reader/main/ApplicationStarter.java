@@ -9,7 +9,7 @@ import com.mak.batch.file.reader.StandardBusRoute;
 
 public class ApplicationStarter {
 
-	@SuppressWarnings({ "unchecked", "unused" })
+	@SuppressWarnings({ "unchecked" })
 	public static void main(String[] args) throws BatchFileReaderException {
 		BatchFileReaderEngine.setupEngine(true, true, 100);
 		/*

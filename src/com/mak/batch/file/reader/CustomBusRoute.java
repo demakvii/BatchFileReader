@@ -4,6 +4,7 @@ import java.util.List;
 
 @ObjectScanning
 public class CustomBusRoute {
+	private Long id;
 
 	private Route startRoute;
 
@@ -42,6 +43,14 @@ public class CustomBusRoute {
 	@ObjectMapping(position = 2, isCustomObject = true, isList = true, className = Route.class, endLocation = 5)
 	public void setInternalRoute(List<Route> internalRoute) {
 		this.internalRoute = internalRoute;
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
 	}
 
 }
